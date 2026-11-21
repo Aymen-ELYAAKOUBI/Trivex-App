@@ -341,32 +341,44 @@ fun SignUpScreen(store: AccountStore, initialRole: AccountRole, onBack: () -> Un
         Button(
             onClick = {
                 val ageInt = age.toIntOrNull()
+                val trimmedFirstName = firstName.trim()
+                val trimmedLastName = lastName.trim()
+                val trimmedLocation = location.trim()
+                val trimmedCompany = companyName.trim()
+                val cleanLogin = login.trim().lowercase()
+
                 error = when {
-                    firstName.isBlank() || lastName.isBlank() || location.isBlank() ||
-                            login.isBlank() || password.isBlank() || confirm.isBlank() ||
-                            (selectedRole == AccountRole.COMPANY && companyName.isBlank()) ->
+                    trimmedFirstName.isBlank() || trimmedLastName.isBlank() || trimmedLocation.isBlank() ||
+                            cleanLogin.isBlank() || password.isBlank() || confirm.isBlank() ||
+                            (selectedRole == AccountRole.COMPANY && trimmedCompany.isBlank()) ->
                         s.fillAllFields
+                    trimmedFirstName.length > 50 || trimmedLastName.length > 50 ->
+                        "Name must not exceed 50 characters"
+                    trimmedLocation.length > 100 ->
+                        "Location must not exceed 100 characters"
+                    selectedRole == AccountRole.COMPANY && trimmedCompany.length > 100 ->
+                        "Company name must not exceed 100 characters"
                     selectedRole == AccountRole.DRIVER && (ageInt == null || ageInt !in 18..70) ->
                         s.invalidAge
                     password.length < 6 -> s.passwordShort
                     password != confirm -> s.passwordMismatch
-                    store.exists(login) -> s.accountExists
+                    store.exists(cleanLogin) -> s.accountExists
                     else -> null
                 }
                 if (error == null) {
                     isLoading = true
                     store.registerWithFirebase(
-                        firstName = firstName,
-                        lastName = lastName,
+                        firstName = trimmedFirstName,
+                        lastName = trimmedLastName,
                         age = if (selectedRole == AccountRole.DRIVER) ageInt ?: 0 else 0,
                         license = if (selectedRole == AccountRole.DRIVER) license else "",
-                        login = login,
+                        login = cleanLogin,
                         password = password,
                         imageUri = imageUri?.toString(),
-                        gender = gender,
-                        location = location,
+                        gender = if (gender == "woman") "woman" else "man",
+                        location = trimmedLocation,
                         role = selectedRole,
-                        companyName = companyName
+                        companyName = if (selectedRole == AccountRole.COMPANY) trimmedCompany else ""
                     ) { account, err ->
                         isLoading = false
                         if (account != null) {

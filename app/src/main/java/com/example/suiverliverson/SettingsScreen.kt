@@ -322,7 +322,7 @@ fun SettingsScreen(store: AccountStore, onBack: () -> Unit) {
         AlertDialog(
             onDismissRequest = { showNotificationRationale = false },
             title = { Text("Allow order notifications?") },
-            text = { Text("Fast Delivery needs notification permission to alert you when a new delivery order arrives.") },
+            text = { Text("Trivex needs notification permission to alert you when a new delivery order arrives.") },
             confirmButton = {
                 TextButton(onClick = {
                     showNotificationRationale = false
@@ -342,7 +342,7 @@ fun SettingsScreen(store: AccountStore, onBack: () -> Unit) {
         AlertDialog(
             onDismissRequest = { showNotificationSettings = false },
             title = { Text("Notifications are disabled") },
-            text = { Text("Allow notifications for Fast Delivery in Android app settings to receive new order alerts.") },
+            text = { Text("Allow notifications for Trivex in Android app settings to receive new order alerts.") },
             confirmButton = {
                 TextButton(onClick = {
                     showNotificationSettings = false

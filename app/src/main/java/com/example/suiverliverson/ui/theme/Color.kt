@@ -2,16 +2,22 @@ package com.example.suiverliverson.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Liverson midnight palette
-val Blue = Color(0xFF77A8FF)
-val Green = Color(0xFF51D6A5)
-val LightGray = Color(0xFFAAB7C9)
-val White = Color(0xFFF4F7FC)
-val Black = Color(0xFF080D16)
-val Red = Color(0xFFFF765E)
-val LightBlue = Color(0xFFDAE8FF)
-val DarkGray = Color(0xFF263449)
+// Trivex Luxury Gold & Obsidian Palette
+val TrivexGold = Color(0xFFFFB300)
+val TrivexGoldBright = Color(0xFFFFC107)
+val TrivexGoldDark = Color(0xFFFF8F00)
+val TrivexGoldGlow = Color(0xFFFFD54F)
 
-val AppBackground = Color(0xFF0C1421)
-val AppSurface = Color(0xFF162235)
-val Purple = Color(0xFF9B8AFF)
+val Blue = Color(0xFF448AFF)
+val Green = Color(0xFF00E676)
+val LightGray = Color(0xFF9E9E9E)
+val White = Color(0xFFFFFFFF)
+val Black = Color(0xFF0A0A0A)
+val Red = TrivexGold
+val LightBlue = Color(0xFFE3F2FD)
+val DarkGray = Color(0xFF1E1E24)
+
+val AppBackground = Color(0xFF08080A)
+val AppSurface = Color(0xFF141418)
+val AppSurfaceCard = Color(0xFF1E1E24)
+val Purple = Color(0xFFB388FF)

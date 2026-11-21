@@ -43,7 +43,12 @@ data class Account(
     val location: String = "Casablanca",
     val role: AccountRole = AccountRole.DRIVER,
     val companyName: String = "",
-    val approvalStatus: AccountApprovalStatus = AccountApprovalStatus.forRole(role)
+    val approvalStatus: AccountApprovalStatus = AccountApprovalStatus.forRole(role),
+    val vehicleType: String = "Car",
+    val identityDocUri: String? = null,
+    val businessAddress: String = "",
+    val legalDocUri: String? = null,
+    val employeeIds: List<String> = emptyList()
 )
 
 class AccountStore(context: Context) {
@@ -76,27 +81,45 @@ class AccountStore(context: Context) {
         put("role", a.role.value)
         put("companyName", a.companyName)
         put("approvalStatus", a.approvalStatus.value)
+        put("vehicleType", a.vehicleType)
+        put("identityDocUri", a.identityDocUri ?: "")
+        put("businessAddress", a.businessAddress)
+        put("legalDocUri", a.legalDocUri ?: "")
+        put("employeeIds", org.json.JSONArray(a.employeeIds))
     }.toString()
 
     private fun fromJson(text: String): Account {
         val o = JSONObject(text)
+        val empArray = o.optJSONArray("employeeIds")
+        val employees = mutableListOf<String>()
+        if (empArray != null) {
+            for (i in 0 until empArray.length()) {
+                employees.add(empArray.getString(i))
+            }
+        }
+        val role = AccountRole.fromValue(o.optString("role", "driver"))
         return Account(
             o.getString("id"),
             o.getString("firstName"),
             o.getString("lastName"),
-            o.getInt("age"),
-            o.getString("license"),
+            o.optInt("age", 0),
+            o.optString("license", ""),
             o.getString("login"),
             o.getString("passwordHash"),
             if (o.has("imageUri")) o.optString("imageUri").ifEmpty { null } else null,
             o.optString("gender", "man"),
             o.optString("location", "Casablanca"),
-            AccountRole.fromValue(o.optString("role", "driver")),
+            role,
             o.optString("companyName", ""),
             AccountApprovalStatus.fromValue(
                 o.optString("approvalStatus").ifEmpty { null },
-                AccountRole.fromValue(o.optString("role", "driver"))
-            )
+                role
+            ),
+            o.optString("vehicleType", "Car"),
+            if (o.has("identityDocUri")) o.optString("identityDocUri").ifEmpty { null } else null,
+            o.optString("businessAddress", ""),
+            if (o.has("legalDocUri")) o.optString("legalDocUri").ifEmpty { null } else null,
+            employees
         )
     }
 
@@ -107,12 +130,20 @@ class AccountStore(context: Context) {
         "age" to account.age,
         "license" to account.license,
         "login" to account.login,
-        "imageUri" to (account.imageUri ?: ""),
+        "imageUri" to (account.imageUri?.take(2048) ?: ""),
         "gender" to account.gender,
         "location" to account.location,
         "role" to account.role.value,
         "companyName" to account.companyName,
         "approvalStatus" to account.approvalStatus.value
+    )
+
+    private fun roleDocument(account: Account): Map<String, Any> = userDocument(account) + mapOf(
+        "vehicleType" to account.vehicleType,
+        "identityDocUri" to (account.identityDocUri ?: ""),
+        "businessAddress" to account.businessAddress,
+        "legalDocUri" to (account.legalDocUri ?: ""),
+        "employeeIds" to account.employeeIds
     )
 
     fun exists(login: String): Boolean = prefs.contains(key(login))
@@ -130,19 +161,30 @@ class AccountStore(context: Context) {
         role: AccountRole = AccountRole.DRIVER,
         companyName: String = ""
     ): Account {
+        val cleanGender = if (gender.trim().lowercase() == "woman") "woman" else "man"
+        val resolvedAge = if (role == AccountRole.DRIVER) age else 0
+        val resolvedLicense = if (role == AccountRole.DRIVER && license.trim().uppercase() in listOf("A", "B", "C", "D")) {
+            license.trim().uppercase()
+        } else {
+            ""
+        }
+        val resolvedCompanyName = if (role == AccountRole.COMPANY) companyName.trim().take(100) else ""
+        val resolvedApprovalStatus = AccountApprovalStatus.forRole(role)
+
         val account = Account(
             id = "DRV" + (1000..9999).random(),
-            firstName = firstName.trim(),
-            lastName = lastName.trim(),
-            age = age,
-            license = license,
+            firstName = firstName.trim().take(50),
+            lastName = lastName.trim().take(50),
+            age = resolvedAge,
+            license = resolvedLicense,
             login = login.trim().lowercase(),
             passwordHash = hash(password),
-            imageUri = imageUri,
-            gender = gender,
-            location = location.trim(),
+            imageUri = imageUri?.take(2048),
+            gender = cleanGender,
+            location = location.trim().take(100),
             role = role,
-            companyName = companyName.trim()
+            companyName = resolvedCompanyName,
+            approvalStatus = resolvedApprovalStatus
         )
         prefs.edit().putString(key(login), toJson(account)).apply()
         return account
@@ -173,7 +215,21 @@ class AccountStore(context: Context) {
             return
         }
 
-        firebaseAuth.createUserWithEmailAndPassword(login.trim().lowercase(), password)
+        val cleanLogin = login.trim().lowercase()
+        val cleanGender = if (gender.trim().lowercase() == "woman") "woman" else "man"
+        val cleanLocation = location.trim().take(100).ifEmpty { "Casablanca" }
+        val cleanFirstName = firstName.trim().take(50)
+        val cleanLastName = lastName.trim().take(50)
+        val resolvedAge = if (role == AccountRole.DRIVER) age else 0
+        val resolvedLicense = if (role == AccountRole.DRIVER && license.trim().uppercase() in listOf("A", "B", "C", "D")) {
+            license.trim().uppercase()
+        } else {
+            ""
+        }
+        val resolvedCompanyName = if (role == AccountRole.COMPANY) companyName.trim().take(100) else ""
+        val resolvedApprovalStatus = AccountApprovalStatus.forRole(role)
+
+        firebaseAuth.createUserWithEmailAndPassword(cleanLogin, password)
             .addOnSuccessListener { authResult ->
                 val user = authResult.user
                 if (user == null) {
@@ -183,17 +239,18 @@ class AccountStore(context: Context) {
 
                 val account = Account(
                     id = user.uid,
-                    firstName = firstName.trim(),
-                    lastName = lastName.trim(),
-                    age = age,
-                    license = license,
-                    login = login.trim().lowercase(),
+                    firstName = cleanFirstName,
+                    lastName = cleanLastName,
+                    age = resolvedAge,
+                    license = resolvedLicense,
+                    login = user.email ?: cleanLogin,
                     passwordHash = hash(password),
-                    imageUri = imageUri,
-                    gender = gender,
-                    location = location.trim(),
+                    imageUri = imageUri?.take(2048),
+                    gender = cleanGender,
+                    location = cleanLocation,
                     role = role,
-                    companyName = companyName.trim()
+                    companyName = resolvedCompanyName,
+                    approvalStatus = resolvedApprovalStatus
                 )
                 val firestore = db
                 if (firestore == null) {
@@ -207,9 +264,23 @@ class AccountStore(context: Context) {
                 firestore.collection("users").document(user.uid)
                     .set(userDocument(account))
                     .addOnSuccessListener {
-                        prefs.edit().putString(key(login), toJson(account)).apply()
-                        setCurrent(account)
-                        onResult(account, null)
+                        val roleCollection = when (account.role) {
+                            AccountRole.CLIENT -> "clients"
+                            AccountRole.DRIVER -> "drivers"
+                            AccountRole.COMPANY -> "companies"
+                        }
+                        firestore.collection(roleCollection).document(user.uid)
+                            .set(roleDocument(account))
+                            .addOnSuccessListener {
+                                prefs.edit().putString(key(cleanLogin), toJson(account)).apply()
+                                setCurrent(account)
+                                onResult(account, null)
+                            }
+                            .addOnFailureListener {
+                                prefs.edit().putString(key(cleanLogin), toJson(account)).apply()
+                                setCurrent(account)
+                                onResult(account, null)
+                            }
                     }
                     .addOnFailureListener { exception ->
                         user.delete().addOnCompleteListener {
@@ -232,6 +303,12 @@ class AccountStore(context: Context) {
 
         val uid = auth?.currentUser?.uid ?: account.id
         db?.collection("users")?.document(uid)?.set(userDocument(account))
+        val roleCollection = when (account.role) {
+            AccountRole.CLIENT -> "clients"
+            AccountRole.DRIVER -> "drivers"
+            AccountRole.COMPANY -> "companies"
+        }
+        db?.collection(roleCollection)?.document(uid)?.set(roleDocument(account))
     }
 
     fun authenticate(login: String, password: String): Account? {

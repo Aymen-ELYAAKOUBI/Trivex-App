@@ -48,13 +48,13 @@ fun LiversonLogo(iconSize: Dp = 110.dp, textSize: TextUnit = 44.sp) {
             painter = painterResource(
                 if (isDarkTheme) R.drawable.logo_dark_mode else R.drawable.logo_light_mode
             ),
-            contentDescription = "Fast Delivery",
+            contentDescription = "Trivex",
             modifier = Modifier.height(iconSize),
         )
         Text(
             text = buildAnnotatedString {
-                withStyle(SpanStyle(color = if (isDarkTheme) White else Color(0xFF202124))) { append("Fast ") }
-                withStyle(SpanStyle(color = Red)) { append("Delivery") }
+                withStyle(SpanStyle(color = if (isDarkTheme) White else Color(0xFF202124))) { append("Tri") }
+                withStyle(SpanStyle(color = Red)) { append("vex") }
             },
             fontSize = textSize,
             fontWeight = FontWeight.Bold,

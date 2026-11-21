@@ -10,35 +10,35 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.dp
 
 private val LiversonDarkColors = darkColorScheme(
-    primary = Red,
-    onPrimary = Color(0xFF27100C),
+    primary = TrivexGold,
+    onPrimary = Color(0xFF1F1600),
     secondary = Green,
-    onSecondary = Color(0xFF062117),
+    onSecondary = Color(0xFF003915),
     tertiary = Purple,
     background = AppBackground,
-    onBackground = White,
+    onBackground = Color(0xFFF5F5F7),
     surface = AppSurface,
-    onSurface = White,
+    onSurface = Color(0xFFF5F5F7),
     surfaceVariant = DarkGray,
     onSurfaceVariant = LightGray,
-    outline = Color(0xFF3A4A61),
-    error = Color(0xFFFFB4A8),
+    outline = Color(0xFF33333D),
+    error = Color(0xFFFFB4AB),
     onError = Color(0xFF690005)
 )
 
 private val LiversonLightColors = lightColorScheme(
-    primary = Red,
+    primary = TrivexGoldDark,
     onPrimary = Color.White,
     secondary = Green,
-    onSecondary = Color(0xFF062117),
+    onSecondary = Color.White,
     tertiary = Purple,
-    background = Color.White,
-    onBackground = Color(0xFF172033),
-    surface = Color(0xFFF1F4F8),
-    onSurface = Color(0xFF172033),
-    surfaceVariant = Color(0xFFE6EAF0),
-    onSurfaceVariant = Color(0xFF485568),
-    outline = Color(0xFF8994A4),
+    background = Color(0xFFFBFBFC),
+    onBackground = Color(0xFF141416),
+    surface = Color.White,
+    onSurface = Color(0xFF141416),
+    surfaceVariant = Color(0xFFF0F0F3),
+    onSurfaceVariant = Color(0xFF5A5A65),
+    outline = Color(0xFFD6D6DF),
     error = Color(0xFFBA1A1A),
     onError = Color.White
 )

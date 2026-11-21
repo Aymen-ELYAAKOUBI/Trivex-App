@@ -22,6 +22,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Fast Delivery App"
+rootProject.name = "Trivex"
 include(":app")
  

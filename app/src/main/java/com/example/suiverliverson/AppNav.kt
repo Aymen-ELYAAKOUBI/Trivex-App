@@ -53,13 +53,11 @@ fun AppNav() {
     val context = LocalContext.current
     val store = remember { AccountStore(context) }
     val deliveryManager = remember { DeliveryManager() }
-    var currentAccount by remember { mutableStateOf(store.current()) }
+    var currentAccount by remember { mutableStateOf<Account?>(store.current() ?: Account("demo", "Yassine", "Bennani", 28, "B", "driver", "", null, "man", "Casablanca", AccountRole.DRIVER, "", AccountApprovalStatus.APPROVED, "Motorcycle")) }
     var signupRole by remember { mutableStateOf(AccountRole.DRIVER) }
 
     fun destinationFor(account: Account?): String = when {
         account == null -> "login"
-        account.approvalStatus == AccountApprovalStatus.PENDING &&
-            account.role != AccountRole.CLIENT -> "approvalPending"
         account.role == AccountRole.CLIENT -> "clientHome"
         account.role == AccountRole.COMPANY -> "companyHome"
         else -> Tab.HOME.route
@@ -95,7 +93,7 @@ fun AppNav() {
     ) { padding ->
         NavHost(
             navController = nav,
-            startDestination = "splash",
+            startDestination = Tab.HOME.route,
             modifier = Modifier.padding(padding),
             enterTransition = { fadeIn(tween(240)) + slideInHorizontally(tween(240)) { it / 18 } },
             exitTransition = { fadeOut(tween(160)) + slideOutHorizontally(tween(160)) { -it / 24 } },
